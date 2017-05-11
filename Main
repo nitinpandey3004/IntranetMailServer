@@ -1,0 +1,193 @@
+sudo su
+apt-get update
+apt-get update --fix-missing
+apt-get install bind9 dnsutils apache2 php5 postfix dovecot-common dovecot-imapd dovecot-pop3d squirrelmail
+
+#To edit the Postfix config
+nano /etc/postfix/main.cf
+
+#To reload after changes
+/etc/init.d/postfix reload
+
+cd /etc/bind
+
+ls -l
+
+nano named.conf.local
+
+
+
+#Add
+zone "nitin.net" {
+        type master;
+	file "/etc/bind/db.nitin";
+};
+
+
+zone "0.168.192.in-addr.arpa" {
+        type master;
+	file "/etc/bind/db.192";
+};
+
+cp db.local db.nitin
+cp db.127 db.192
+
+nano db.nitin
+#perform following changes
+;
+; BIND data file for local loopback interface
+:
+$TTL	604800
+@	IN	SOA	ns.nitin.net.	root.nitin.net.	(
+				2	; Serial
+			   604800	; Refresh
+			    86400	; Retry
+			  2419200	; Expire
+			   684800 )	; Negative Cache TTL
+;
+@	IN	NS	ns.nitin.net.
+@	IN	A	10.0.2.15
+ns	IN	A	10.0.2.15
+	IN	MX 10	mail.nitin.net.
+www	IN	CNAME	ns
+mail	IN	CNAME	ns
+
+nano db.192
+#perform following changes
+;
+; BIND data file for local loopback interface
+
+
+
+:
+$TTL	604800
+@	IN	SOA	ns.nitin.net.	root.nitin.net.	(
+				2	; Serial
+			   604800	; Refresh
+			    86400	; Retry
+			  2419200	; Expire
+			   684800 )	; Negative Cache TTL
+;
+@	IN	NS	ns.nitin.net.
+1	IN	PTR	ns.nitin.net.
+
+
+
+#disconnect from wifi
+#Stop and restart the domain name service
+invoke-rc.d bind9 restart
+
+#Check to see if it resolves correctly
+nslookup mail.nitin.net
+
+Server:			127.0.0.1
+Address:		127.0.0.1#53
+
+mail.nitin.net		canonical name = ns.nitin.net
+Name:	ns.nitin.net
+Address: 10.0.2.15
+
+cd apache2/sites-available/
+cp 000-default.conf mail.conf
+nano mail.conf
+a2ensite mail.conf
+service apache2 reload
+dpkg-reconfigure postfix
+#perform following changes
+setting synchronous mail queue updates: false
+setting myhostname=nitin-VirtualBox in /etc/postfix
+changing /etc/mailname to mail.nitin.net
+setting myorigin
+setting destinations: mail.nitin.net,$myhostname, nitin-VirtualBox, localhost.localdomain, , localhost,nitin.net
+setting relayhost:
+
+
+
+setting mynetworks: 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 10.0.2.15/24
+setting mailbox_size_limit: 0
+setting recipient_delimiter: +
+setting inet_interfaces: loopback-only
+setting default_transport: error
+setting relay_transport: error
+setting inet_protocols: all
+WARNING: /etc/aliases exists, but does not have a root alias.
+
+Postfix is now set up with the changes above.  If you need to make changes, edit
+/etc/postfix/main.cf (and others) as needed.  To view Postfix configuration
+values, see postconf(1).
+
+After modifying main.cf, be sure to run '/etc/init.d/postfix reload'.
+
+Running newaliases
+Processing triggers for libc-bin (2.23-0ubuntu3) ...
+nano /etc/squirrelmail/apache.conf
+nano /etc/dovecot/dovecot.conf
+
+killall named
+killall apache2
+killall dovecot
+invoke-rc.d bind9 restart
+invoke-rc.d apache2 restart
+invoke-rc.d postfix restart
+invoke-rc.d dovecot restart
+
+#adding three users in mailing system
+
+adduser neeraj
+//
+Adding user `neeraj' ...
+Adding new group `neeraj' (1001) ...
+Adding new user `neeraj' (1001) with group `neeraj' ...
+Creating home directory `/home/neeraj' ...
+Copying files from `/etc/skel' ...
+Enter new UNIX password:
+Retype new UNIX password:
+passwd: password updated successfully
+Changing the user information for neeraj
+Enter the new value, or press ENTER for the default
+    Full Name []: Neeraj
+    Room Number []: 1
+    Work Phone []: 1
+    Home Phone []: 1
+    Other []: 1
+Is the information correct? [Y/n] y
+
+
+adduser shripad
+//
+Adding user `shripad' ...
+Adding new group `shripad' (1002) ...
+Adding new user `shripad' (1002) with group `shripad' ...
+Creating home directory `/home/shripad' ...
+Copying files from `/etc/skel' ...
+Enter new UNIX password:
+Retype new UNIX password:
+passwd: password updated successfully
+Changing the user information for shripad
+Enter the new value, or press ENTER for the default
+    Full Name []: 1   
+    Room Number []: 1
+    Work Phone []: 1
+    Home Phone []: 1
+    Other []: 1
+Is the information correct? [Y/n] y
+
+
+adduser miniproject
+//
+Adding user `miniproject ...
+Adding new group `miniproject (1002) ...
+Adding new user `miniproject (1002) with group `miniproject ...
+Creating home directory `/home/miniproject ...
+Copying files from `/etc/skel' ...
+Enter new UNIX password:
+Retype new UNIX password:
+passwd: password updated successfully
+Changing the user information for miniproject
+Enter the new value, or press ENTER for the default
+    Full Name []: 1   
+    Room Number []: 1
+    Work Phone []: 1
+    Home Phone []: 1
+    Other []: 1
+Is the information correct? [Y/n] y
